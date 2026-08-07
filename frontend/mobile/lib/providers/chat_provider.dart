@@ -15,7 +15,7 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    _apiUrl = prefs.getString('api_url') ?? 'https://your-server.onrender.com';
+    _apiUrl = prefs.getString('api_url') ?? 'https://nexus-ultimate-1-aymanahmed33200.replit.app';
     _userId = prefs.getInt('user_id');
     _token = prefs.getString('token');
   }
