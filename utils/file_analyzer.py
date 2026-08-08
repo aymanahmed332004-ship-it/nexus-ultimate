@@ -39,6 +39,20 @@ class FileAnalyzer:
                 except: pass
             await self.client.aclose()
     
+    async def analyze_local(self, file_path: str, user_id: int) -> dict:
+        """تحليل ملف مرفوع محلياً بدلاً من URL"""
+        try:
+            ext = os.path.splitext(file_path)[1].lower()
+            content = "نوع الملف غير مدعوم"
+            if ext in ['.pdf','.docx','.txt']: content = await self._extract_text(file_path, ext)
+            elif ext in ['.jpg','.jpeg','.png','.gif']: content = await self._analyze_image(file_path)
+            elif ext in ['.mp3','.wav','.ogg']: content = await self._transcribe_audio(file_path)
+            summary = await self.router.ask(f"لخص هذا المحتوى: {content[:3000]}", "لخص النص")
+            return {"content": content[:5000], "summary": summary, "type": ext}
+        except Exception as e:
+            logger.error(f"Local file analysis error: {e}")
+            return {"error": str(e)}
+    
     async def _extract_text(self, file_path: str, ext: str) -> str:
         try:
             if ext == '.pdf':

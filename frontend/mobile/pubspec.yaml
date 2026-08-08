@@ -10,6 +10,14 @@ dependencies:
   shared_preferences: ^2.2.2
   speech_to_text: ^6.6.0
   audioplayers: ^5.2.1
+  
+  # مكتبات جديدة (التصميم، الملفات، الإعلانات)
+  google_fonts: ^6.1.0
+  image_picker: ^1.0.4
+  file_picker: ^6.1.1
+  start_io_sdk: ^2.0.0
+  google_mobile_ads: ^5.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

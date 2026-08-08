@@ -26,3 +26,5 @@ nest_asyncio==1.5.8
 yt-dlp==2024.11.4
 youtube-search-python==1.2.4
 youtube-transcript-api==0.6.2
+google-generativeai
+aiofiles

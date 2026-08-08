@@ -1,4 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- الأذونات الأساسية -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- أذونات إضافية لرفع الصور والملفات -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!-- إضافة وسم التطبيق الخاص بالإعلانات -->
+    <application>
+        <!-- معرف Start.io (لإعلانات الـ 10 رسائل) -->
+        <meta-data android:name="startio.sdk.AppId" android:value="207683830" />
+        
+        <!-- معرف AdMob (لإعلانات الفيديو المكافأة) -->
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-7903719438517437-7705147468"/>
+    </application>
 </manifest>

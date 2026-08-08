@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, AsyncGenerator
-import json, asyncio
+import json, asyncio, os, aiofiles
 from api.dependencies import get_current_user
 from agents.manager import AgentManager
 from memory.manager import MemoryManager
@@ -11,22 +11,24 @@ from utils.voice_engine import VoiceEngine
 from utils.file_analyzer import FileAnalyzer
 from utils.search_engine import SearchEngine
 from utils.intent_router import IntentRouter
+from utils.image_gen import ImageGenerator
 from core.security import Security
 from models.user import User
 from database import get_db
 from sqlalchemy.orm import Session
 from logger import logger
+
 router = APIRouter()
+
 class LoginRequest(BaseModel): username: str; password: str
 class AskRequest(BaseModel): query: str; language: Optional[str] = "auto"; deep_thinking: Optional[bool] = False
 class VoiceRequest(BaseModel): text: str; language: Optional[str] = "ar"
-class FileRequest(BaseModel): file_url: str
 class SearchRequest(BaseModel): query: str; sources: Optional[list] = ["web"]
 class RefreshTokenRequest(BaseModel): token: str
 
 @router.get("/")
 async def home():
-    return {"status": "✅ NEXUS-ULTIMATE v4.1 is running!", "features": ["Multi-Agent", "RAG Memory", "Voice TTS", "File Analysis", "Streaming", "JWT Auth", "Rate Limiting", "Intent Classification", "Multi-Source Search"]}
+    return {"status": "✅ NEXUS-ULTIMATE v4.1 is running!", "features": ["Multi-Agent", "RAG Memory", "Voice TTS", "File Analysis", "Streaming", "JWT Auth", "Rate Limiting", "Intent Classification", "Multi-Source Search", "Image Generation"]}
 
 @router.post("/auth/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
@@ -82,12 +84,39 @@ async def text_to_speech(request: VoiceRequest, current_user: User = Depends(get
         return {"audio": audio_base64}
     except Exception as e: raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/analyze_file")
-async def analyze_file(request: FileRequest, current_user: User = Depends(get_current_user)):
+@router.post("/upload_file")
+async def upload_file(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
     try:
+        file_location = f"/tmp/upload_{current_user.id}_{file.filename}"
+        async with aiofiles.open(file_location, 'wb') as f:
+            content = await file.read()
+            await f.write(content)
+        
         analyzer = FileAnalyzer()
-        return await analyzer.analyze(request.file_url, current_user.id)
-    except Exception as e: raise HTTPException(status_code=500, detail=str(e))
+        result = await analyzer.analyze_local(file_location, current_user.id)
+        
+        if os.path.exists(file_location): 
+            os.remove(file_location)
+        return result
+    except Exception as e:
+        logger.error(f"File upload error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/generate_image")
+async def generate_image(
+    prompt: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        generator = ImageGenerator()
+        image_url = await generator.generate(prompt)
+        return {"image_url": image_url}
+    except Exception as e:
+        logger.error(f"Image gen error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/search")
 async def search(request: SearchRequest, current_user: User = Depends(get_current_user)):

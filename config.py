@@ -20,6 +20,10 @@ class Settings:
     RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", 60))
     ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000")
     
+    # ===== المفاتيح الجديدة =====
+    MY_CHAT_API = os.getenv("MY_CHAT_API")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    
     @property
     def cors_origins(self):
         if self.ALLOWED_ORIGINS == "*": return ["*"]
@@ -29,7 +33,5 @@ class Settings:
     OCR_TIMEOUT = 60
     API_TIMEOUT = 60
     DEBUG = os.getenv("DEBUG", "False").lower() == "true"
-    # السطر الجديد المهم جداً عشان يقبل الشغل من غير Redis
-    CELERY_ALWAYS_EAGER = os.getenv("CELERY_ALWAYS_EAGER", "True").lower() == "true"
 
 settings = Settings()
