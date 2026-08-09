@@ -106,7 +106,7 @@ class ChatProvider extends ChangeNotifier {
       if (_dailyQuota <= 0) {
         // عرض إعلان فيديو مكافأة
         if (_rewardedAd != null) {
-          _rewardedAd?.show(onUserEarnedReward: (ad, reward) {
+          _rewardedAd?.show(onUserEarnedReward: (ad, reward) async {
             _dailyQuota += 3;
             final prefs = await SharedPreferences.getInstance();
             prefs.setInt('daily_quota', _dailyQuota);
