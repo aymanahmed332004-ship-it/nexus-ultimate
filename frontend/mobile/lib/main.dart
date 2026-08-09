@@ -4,13 +4,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:developer'; // لإظهار تفاصيل الخطأ
 import 'screens/chat_screen.dart';
 import 'providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const NexusApp());
+  try {
+    await Firebase.initializeApp();
+    runApp(const NexusApp());
+  } catch (e) {
+    // طباعة الخطأ في الـ Console لو حصل مشكلة في تشغيل Firebase
+    print("🔥🔥 CRITICAL ERROR: $e");
+    developer.log("Firebase Init Error", error: e);
+    // في حالة حدوث خطأ، ممكن نعرض شاشة خطأ أو نعيد المحاولة
+  }
 }
 
 class NexusApp extends StatelessWidget {
