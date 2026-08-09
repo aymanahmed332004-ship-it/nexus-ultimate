@@ -22,6 +22,9 @@ jobs:
         run: flutter pub get
         working-directory: ./frontend/mobile
 
+      - name: Copy Android files to root workaround
+        run: cp -r ./frontend/mobile/android ./android
+
       - name: Build APK
         run: flutter build apk --release
         working-directory: ./frontend/mobile
@@ -31,3 +34,4 @@ jobs:
         with:
           name: nexus-ultimate-apk
           path: ./frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
+
