@@ -5,11 +5,12 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:ui';
+import 'dart:math';
 import '../providers/chat_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
-
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -24,12 +25,11 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ChatProvider>(context);
-
     return Scaffold(
-      // تصميم الـ AppBar الجديد مع زر الماستر
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('NEXUS AI', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.black12,
+        title: const Text('Nexus AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
@@ -38,152 +38,144 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: provider.messages.length,
-              padding: const EdgeInsets.all(12),
-              itemBuilder: (context, index) {
-                final msg = provider.messages[index];
-                final isUser = msg['role'] == 'user';
-
-                // تصميم فقاعات الشات الجديدة
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isUser ? Colors.blueAccent : Colors.grey.shade800,
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(16),
-                        topRight: const Radius.circular(16),
-                        bottomLeft: isUser ? const Radius.circular(16) : Radius.zero,
-                        bottomRight: isUser ? Radius.zero : const Radius.circular(16),
+      body: Container(
+        width: double.infinity, height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+            colors: [Color(0xFF0A0B1E), Color(0xFF14173D), Color(0xFF2A134D)],
+          ),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: provider.messages.length,
+                padding: const EdgeInsets.all(16),
+                itemBuilder: (context, index) {
+                  final msg = provider.messages[index];
+                  final isUser = msg['role'] == 'user';
+                  return Align(
+                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isUser ? const Color(0xFF4A6CF7).withOpacity(0.8) : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(24),
+                          topRight: const Radius.circular(24),
+                          bottomLeft: isUser ? const Radius.circular(24) : Radius.zero,
+                          bottomRight: isUser ? Radius.zero : const Radius.circular(24),
+                        ),
+                        border: Border.all(color: Colors.white.withOpacity(0.15)),
+                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  msg['content'] ?? '',
+                                  style: const TextStyle(color: Colors.white, fontSize: 16, height: 1.4),
+                                ),
+                              ),
+                              if (!isUser) Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: AnimatedWaveform(),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    child: Text(
-                      msg['content'] ?? '',
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          // مؤشر التحميل (النقاط الثلاث) - يظهر بعد رسالة المستخدم
-          if (provider.messages.isNotEmpty && provider.messages.last['role'] == 'user')
-            Padding(
-              padding: const EdgeInsets.only(left: 12, bottom: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                    const SizedBox(width: 4),
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                  ],
-                ),
+                  );
+                },
               ),
             ),
-
-          // شريط الإدخال الجديد (مع زر الصور)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                  onPressed: _toggleListening,
-                ),
-                
-                // زر رفع الصور
-                IconButton(
-                  icon: const Icon(Icons.attach_file),
-                  onPressed: () async {
-                    final picker = ImagePicker();
-                    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                    if (image != null) {
-                      // إرسال الصورة للسيرفر عبر MultipartRequest
-                      var request = http.MultipartRequest(
-                        'POST', 
-                        Uri.parse('${provider.apiUrl}/upload_file')
-                      );
-                      request.headers['Authorization'] = 'Bearer ${provider.token}';
-                      var multipartFile = await http.MultipartFile.fromPath('file', image.path);
-                      request.files.add(multipartFile);
-                      
-                      var response = await request.send();
-                      if (response.statusCode == 200) {
-                        final responseData = await response.stream.bytesToString();
-                        final jsonData = jsonDecode(responseData);
-                        provider.messages.add({
-                          'role': 'assistant', 
-                          'content': jsonData['summary'] ?? '✅ تم تحليل الصورة بنجاح'
-                        });
-                        provider.notifyListeners();
-                      } else {
-                        provider.messages.add({
-                          'role': 'assistant', 
-                          'content': '⚠️ فشل تحميل الصورة'
-                        });
-                        provider.notifyListeners();
-                      }
-                      // التمرير للأسفل بعد الإرسال
-                      _scrollController.animateTo(
-                        _scrollController.position.maxScrollExtent,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOut,
-                      );
-                    }
-                  },
-                ),
-
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'اسأل NEXUS...',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white12,
+            if (provider.messages.isNotEmpty && provider.messages.last['role'] == 'user')
+              Padding(
+                padding: const EdgeInsets.only(left: 16, bottom: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    onSubmitted: (text) => _sendMessage(provider),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [Dot(), Dot(), Dot()],
+                    ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () => _sendMessage(provider),
-                ),
-              ],
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(_isListening ? Icons.mic : Icons.mic_none, color: Colors.white),
+                    onPressed: () => _toggleListening(provider),
+                  ),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      ),
+                      child: TextField(
+                        controller: _controller,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          hintText: 'اسأل Nexus AI...',
+                          hintStyle: TextStyle(color: Colors.white38),
+                          border: InputBorder.none,
+                        ),
+                        onSubmitted: (v) => _sendMessage(provider),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 50, height: 50,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: [Color(0xFF6A5ACD), Color(0xFF4A6CF7)]),
+                      boxShadow: [BoxShadow(color: Color(0xFF4A6CF7), blurRadius: 12, spreadRadius: 2)],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                      color: Colors.white,
+                      onPressed: () => _sendMessage(provider),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  // دالة إرسال الرسالة
   void _sendMessage(ChatProvider provider) async {
     if (_controller.text.isEmpty) return;
     final query = _controller.text;
     _controller.clear();
     await provider.sendMessage(query);
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
+    _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
   }
 
-  // دالة الميكروفون
-  void _toggleListening() async {
+  void _toggleListening(ChatProvider provider) async {
     if (_isListening) {
       _speech.stop();
       setState(() => _isListening = false);
@@ -193,13 +185,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!available) return;
     setState(() => _isListening = true);
     _speech.listen(
-      onResult: (result) {
-        setState(() => _controller.text = result.recognizedWords);
-      },
+      onResult: (result) => setState(() => _controller.text = result.recognizedWords),
     );
   }
 
-  // دالة مربع حوار وضع الماستر
   void _showMasterDialog(BuildContext context, ChatProvider provider) async {
     TextEditingController _passwordController = TextEditingController();
     showDialog(
@@ -237,5 +226,44 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     );
+  }
+}
+
+class AnimatedWaveform extends StatefulWidget {
+  const AnimatedWaveform({super.key});
+  @override
+  State<AnimatedWaveform> createState() => _AnimatedWaveformState();
+}
+class _AnimatedWaveformState extends State<AnimatedWaveform> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  @override
+  void initState() { super.initState(); _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 600))..repeat(); }
+  @override
+  void dispose() { _controller.dispose(); super.dispose(); }
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 30, height: 16,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(5, (i) {
+          final h = 4.0 + (5.0 * (i % 2 == 0 ? 1 : 0.6));
+          return AnimatedBuilder(
+            animation: _controller,
+            builder: (_, __) {
+              final height = h * (0.5 + 0.5 * (sin(_controller.value * 2 * pi + i * 1.2)));
+              return Container(width: 3, height: height, decoration: BoxDecoration(color: Colors.white.withOpacity(0.8), borderRadius: BorderRadius.circular(2)));
+            },
+          );
+        }),
+      ),
+    );
+  }
+}
+class Dot extends StatelessWidget {
+  const Dot({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(width: 8, height: 8, margin: const EdgeInsets.symmetric(horizontal: 2), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle));
   }
 }

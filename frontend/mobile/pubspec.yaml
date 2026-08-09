@@ -11,15 +11,24 @@ dependencies:
   speech_to_text: ^6.6.0
   audioplayers: ^5.2.1
   
-  # مكتبات جديدة (التصميم، الملفات، الإعلانات)
+  # مكتبات التصميم والملفات
   google_fonts: ^6.1.0
   image_picker: ^1.0.4
   file_picker: ^6.1.1
-  start_io_sdk: ^2.0.0
+
+  # مكتبة الإعلانات الرسمية من جوجل (AdMob)
   google_mobile_ads: ^5.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # مكتبة الأيقونات
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logo.png"
+
 flutter:
   uses-material-design: true
