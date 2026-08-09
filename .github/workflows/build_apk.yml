@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.18.0
         with:
@@ -18,16 +18,20 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Fix Gradle Settings Path
+        working-directory: frontend/mobile
+        run: touch settings.gradle.kts
+
       - name: Install dependencies
         run: flutter pub get
-        working-directory: ./frontend/mobile
+        working-directory: frontend/mobile
 
       - name: Build APK
         run: flutter build apk --release
-        working-directory: ./frontend/mobile
+        working-directory: frontend/mobile
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: nexus-ultimate-apk
-          path: ./frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
