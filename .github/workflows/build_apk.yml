@@ -18,12 +18,14 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Fix Android Directory Structure
+      - name: Fix Gradle Settings Path
         working-directory: frontend/mobile
         run: |
-          # التأكد من وجود ملفات الجرادل في مكانها الصحيح للمشروع الفرعي
-          if [ ! -f android/settings.gradle.kts ] && [ -f android/settings.gradle ]; then
-            mv android/settings.gradle android/settings.gradle.kts
+          if [ -f android/settings.gradle.kts ]; then
+            cp android/settings.gradle.kts ./settings.gradle.kts
+          fi
+          if [ -f android/settings.gradle ]; then
+            cp android/settings.gradle ./settings.gradle
           fi
 
       - name: Install dependencies
@@ -39,3 +41,4 @@ jobs:
         with:
           name: nexus-ultimate-apk
           path: frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
+
