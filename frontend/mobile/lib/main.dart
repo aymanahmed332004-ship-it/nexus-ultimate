@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'dart:developer'; // لإظهار تفاصيل الخطأ
 import 'screens/chat_screen.dart';
 import 'providers/chat_provider.dart';
 
@@ -14,10 +13,7 @@ void main() async {
     await Firebase.initializeApp();
     runApp(const NexusApp());
   } catch (e) {
-    // طباعة الخطأ في الـ Console لو حصل مشكلة في تشغيل Firebase
     print("🔥🔥 CRITICAL ERROR: $e");
-    developer.log("Firebase Init Error", error: e);
-    // في حالة حدوث خطأ، ممكن نعرض شاشة خطأ أو نعيد المحاولة
   }
 }
 
@@ -161,8 +157,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _socialButton(Icons.g_mobiledata, 'Google', _signInWithGoogle),
-                    _socialButton(Icons.code, 'GitHub', () {}), // يمكنك إضافة GitHub Auth هنا
-                    _socialButton(Icons.alternate_email, 'X (Twitter)', () {}), // يمكنك إضافة Twitter Auth هنا
+                    _socialButton(Icons.code, 'GitHub', () {}),
+                    _socialButton(Icons.alternate_email, 'X (Twitter)', () {}),
                   ],
                 ),
               ],
