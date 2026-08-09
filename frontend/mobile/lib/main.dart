@@ -50,11 +50,11 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _handleEmailPassword() async {
     try {
       if (_isSignup) {
-        // تسجيل حساب جديد (مؤقت، هيحفظ في الذاكرة بس)
+        // تسجيل جديد (مؤقت)
         _isSignup = false;
         Navigator.pushReplacementNamed(context, '/chat');
       } else {
-        // تسجيل دخول مؤقت (هيدخل عادي من غير Firebase)
+        // دخول (مؤقت)
         Navigator.pushReplacementNamed(context, '/chat');
       }
     } catch (e) {
