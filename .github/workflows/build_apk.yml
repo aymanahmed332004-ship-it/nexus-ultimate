@@ -16,7 +16,7 @@ jobs:
         with:
           flutter-version: '3.22.3'
           channel: 'stable'
-          cache: true
+          cache: false
 
       - name: Fix Gradle Settings Path
         working-directory: frontend/mobile
