@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ui';
 import 'dart:math';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/chat_provider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -33,7 +34,14 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.security),
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/');
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.security, color: Colors.white),
             onPressed: () => _showMasterDialog(context, provider),
           ),
         ],
