@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'screens/chat_screen.dart';
 import 'providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    await Firebase.initializeApp();
-    runApp(const NexusApp());
-  } catch (e) {
-    print("🔥🔥 CRITICAL ERROR: $e");
-  }
+  runApp(const NexusApp());
 }
 
 class NexusApp extends StatelessWidget {
@@ -55,35 +47,16 @@ class _AuthScreenState extends State<AuthScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
 
-  Future<void> _signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
-      );
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      Navigator.pushReplacementNamed(context, '/chat');
-    } catch (e) {
-      print("Google Sign-In Error: $e");
-    }
-  }
-
   Future<void> _handleEmailPassword() async {
     try {
       if (_isSignup) {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passController.text,
-        );
+        // تسجيل حساب جديد (مؤقت، هيحفظ في الذاكرة بس)
+        _isSignup = false;
+        Navigator.pushReplacementNamed(context, '/chat');
       } else {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text,
-          password: _passController.text,
-        );
+        // تسجيل دخول مؤقت (هيدخل عادي من غير Firebase)
+        Navigator.pushReplacementNamed(context, '/chat');
       }
-      Navigator.pushReplacementNamed(context, '/chat');
     } catch (e) {
       print("Auth Error: $e");
     }
@@ -156,7 +129,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _socialButton(Icons.g_mobiledata, 'Google', _signInWithGoogle),
+                    _socialButton(Icons.g_mobiledata, 'Google', () {}),
                     _socialButton(Icons.code, 'GitHub', () {}),
                     _socialButton(Icons.alternate_email, 'X (Twitter)', () {}),
                   ],
