@@ -18,20 +18,19 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Move android to root for build
+        run: |
+          mv frontend/mobile/android ./android
+          mv frontend/mobile/pubspec.yaml ./pubspec.yaml
+
       - name: Install dependencies
         run: flutter pub get
-        working-directory: ./frontend/mobile
 
       - name: Build APK
-        run: |
-          cp -r android ../../android
-          flutter build apk --release
-        working-directory: ./frontend/mobile
+        run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: nexus-ultimate-apk
-          path: ./frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
-
-
+          path: build/app/outputs/flutter-apk/app-release.apk
