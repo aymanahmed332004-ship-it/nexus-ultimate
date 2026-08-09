@@ -18,20 +18,17 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Move project files to root for build
-        run: |
-          cp -r frontend/mobile/android ./android
-          cp -r frontend/mobile/lib ./lib
-          cp frontend/mobile/pubspec.yaml ./pubspec.yaml
-
       - name: Install dependencies
         run: flutter pub get
+        working-directory: frontend/mobile
 
       - name: Build APK
         run: flutter build apk --release
+        working-directory: frontend/mobile
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: nexus-ultimate-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
+
