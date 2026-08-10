@@ -10,7 +10,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2.18.0
         with:
@@ -18,9 +18,17 @@ jobs:
           channel: 'stable'
           cache: false
 
-      - name: Fix Gradle Settings Path
+      - name: Fix Gradle Settings Path & Constants
         working-directory: frontend/mobile
-        run: touch settings.gradle.kts
+        run: |
+          if [ -f android/settings.gradle.kts ]; then
+            cp android/settings.gradle.kts ./settings.gradle.kts
+          fi
+          if [ -f android/settings.gradle ]; then
+            cp android/settings.gradle ./settings.gradle
+          fi
+          sed -i 's/versionCode = flutterVersionCode/versionCode = 1/g' android/app/build.gradle.kts
+          sed -i 's/versionName = flutterVersionName/versionName = "1.0.0"/g' android/app/build.gradle.kts
 
       - name: Install dependencies
         run: flutter pub get
